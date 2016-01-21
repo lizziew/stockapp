@@ -8,27 +8,139 @@
 	<script type="text/javascript" src="http://datahub.csail.mit.edu/static/lib/datahub/datahub_types.js"></script>
 	<script type="text/javascript" src="http://datahub.csail.mit.edu/static/lib/datahub/DataHub.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-	<script src="https://code.highcharts.com/highcharts.js"></script>
 	<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="http://code.highcharts.com/highcharts-more.js"></script>
+	<script src="https://code.highcharts.com/highcharts.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
   </head>
   <body>
     <h1><%= title %></h1>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
   </body>
 </html>
 <script type="text/javascript">
-	transport = new Thrift.Transport("http://datahub.csail.mit.edu/service/json"),
+	/*transport = new Thrift.Transport("http://datahub.csail.mit.edu/service/json"),
 	protocol = new Thrift.Protocol(transport),
 	client = new DataHubClient(protocol),
 	con_params = new ConnectionParams({'user': 'eweitest', 'password': 'eweitest'}),
 	con = client.open_connection(con_params),
 	res = client.execute_sql(con, 'select * from eweitest.repo1.temperature'); 
 
-	console.log(res); 
+	console.log(res); */
 
 	$(document).ready(function(){
-	   
+		// var singleInterval;
+
+		// function getSingleData() {
+		//     singleInterval = setInterval(getLastTraded, 5000);
+		// }
+
+		// function getLastTraded() {
+		// 	$.ajax({
+		// 		url: '/getSingleData',
+		// 		data: {},
+		// 		type: 'GET',
+		// 		success: function(data) {
+		// 			console.log("data is " + data);
+		// 		},
+		// 		error: function(xhr, status, error) {
+		// 			console.log("Uh oh there was an error: " + error);
+		// 			console.log(xhr.status);
+		// 			console.log(xhr.responseText);
+		// 		}
+		//     });
+		// }
 		
+		// getSingleData(); 
 	}); 
+
+	$(function () {
+	    $(document).ready(function () {
+	        Highcharts.setOptions({
+	            global: {
+	                useUTC: false
+	            }
+	        });
+
+	        $('#container').highcharts({
+	            chart: {
+	                type: 'spline',
+	                animation: Highcharts.svg, // don't animate in old IE
+	                marginRight: 10,
+	                events: {
+	                    load: function () {
+	                        //update chart every second
+	                        var series = this.series[0];
+	                        setInterval(function () {
+								$.ajax({
+									url: '/getSingleData',
+									data: {},
+									type: 'GET',
+									success: function(data) {
+										console.log("data is " + data);
+										var lastTradePrice = JSON.parse(data)["lastTradePriceOnly"]; 
+			                            var x = (new Date()).getTime(), // current time
+			                                y = lastTradePrice;
+			                            series.addPoint([x, y], true, true);
+									},
+									error: function(xhr, status, error) {
+										console.log("Uh oh there was an error: " + error);
+										console.log(xhr.status);
+										console.log(xhr.responseText);
+									}
+							    });
+	                        }, 1000);
+	                    }
+	                }
+	            },
+	            title: {
+	                text: 'Last trade - APPL - Live'
+	            },
+	            xAxis: {
+	                type: 'datetime',
+	                tickPixelInterval: 150
+	            },
+	            yAxis: {
+	                title: {
+	                    text: 'Last Bid ($)'
+	                },
+	                plotLines: [{
+	                    value: 0,
+	                    width: 1,
+	                    color: '#808080'
+	                }]
+	            },
+	            tooltip: {
+	                formatter: function () {
+	                    return '<b>' + this.series.name + '</b><br/>' +
+	                        Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+	                        Highcharts.numberFormat(this.y, 2);
+	                }
+	            },
+	            legend: {
+	                enabled: false
+	            },
+	            exporting: {
+	                enabled: false
+	            },
+	            series: [{
+	                name: 'APPL Last Trade',
+	                data: (function () {
+	                    // generate an array of random data
+	                    var data = [],
+	                        time = (new Date()).getTime(),
+	                        i;
+
+	                    for (i = -19; i <= 0; i += 1) {
+	                        data.push({
+	                            x: time + i * 1000,
+	                            y: 0
+	                        });
+	                    }
+	                    return data;
+	                }())
+	            }]
+	        });
+	    });
+	});
 </script> 
 
