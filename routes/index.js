@@ -4,28 +4,41 @@ var yahooFinance = require('yahoo-finance');
 require('colors');  
 var _ = require('lodash');
 var util = require('util');
+var bodyParser = require('body-parser'); 
+
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(bodyParser.json());
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Stock Analysis App' });
+	console.log(req.body); 
+ 	res.render('index', { 
+ 		title: 'Stock Analysis App',
+ 		data: 100 
+	});
 });
 
-//SINGLE COMPANY : LAST TRADED WITH PRICE ONLY
-router.get('/getSingleData', function(req, res) {
+/* POST last traded with price only. */
+router.post('/getData', function(req, res, next) {
 	var FIELDS = _.flatten([
 	  ['l1']
 	]);
+	var SYMBOLS = JSON.parse(req.body.names);
 
-	var SYMBOL = 'AAPL';
+	console.log(SYMBOLS); 
 
 	yahooFinance.snapshot({
-		fields: FIELDS,
-		symbol: SYMBOL
-	}, function (err, snapshot) {
-	if (err) { throw err; }
-	console.log(util.format('=== %s ===', SYMBOL).cyan);
-	console.log(JSON.stringify(snapshot));
-	res.send(JSON.stringify(snapshot));
+	  fields: FIELDS,
+	  symbols: SYMBOLS
+	}, function (err, result) {
+	  if (err) { throw err; }
+	  var data = []; 
+	  _.each(result, function (snapshot, symbol) {
+	    console.log(util.format('=== %s ===', symbol).cyan);
+	    console.log(JSON.stringify(snapshot));
+	    data[symbol] = snapshot; 
+	  });
+	  res.send(data); 
 	});
 });
 
