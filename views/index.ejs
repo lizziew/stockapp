@@ -43,6 +43,7 @@
 		        chart : {
 		            events : {
 		               load : function () {
+		               	var series = this.series; 
 		     					setInterval(function () {
 									$.ajax({
 									  url: "/getData",
@@ -52,10 +53,9 @@
 									    //console.log("success!!! got " + JSON.stringify(response));
 									    for(var i in response) {
 									    	var r = response[i]; 
-									    	console.log(r["symbol"] + " ... " + r["lastTradePriceOnly"]);
 									    	var x = (new Date()).getTime();
 									    	var y = r["lastTradePriceOnly"]; 
-									    	seriesOptions[i].addPoint([x,y], true, true);  
+									    	series[i].addPoint([x,y], true, true);  
 									    }
 									  },
 									  error: function(xhr) {
@@ -65,7 +65,7 @@
 									  }
 									});
 
-		                  }, 5000);
+		                  }, 1000);
 		               }
 		            }
 		        },
