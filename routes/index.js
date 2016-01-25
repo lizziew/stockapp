@@ -42,4 +42,25 @@ router.post('/getData', function(req, res, next) {
 	});
 });
 
+/* POST if stock symbol is valid. */
+router.post('/checkStockSymbol', function(req, res, next) {
+	var FIELDS = _.flatten([
+	  ['l1']
+	]);
+	var SYMBOL = req.body.name;
+
+	yahooFinance.snapshot({
+	  fields: FIELDS,
+	  symbol: SYMBOL
+	}, function (err, snapshot) {
+	  if (err) { throw err; }
+	  if(snapshot["lastTradePriceOnly"] === null) {
+	  	res.send("invalid");
+	  }
+	  else {
+	  	res.send("valid");
+	  }
+	});
+});
+
 module.exports = router;
